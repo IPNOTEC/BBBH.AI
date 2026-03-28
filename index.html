@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>BlackBerry.bhai · Bhai Network</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;color:#dedede}
+.app{width:100%;max-width:480px;height:100vh;max-height:860px;background:#000;border-radius:28px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,102,0,0.15),0 20px 40px rgba(0,0,0,0.9);display:flex;flex-direction:column;position:relative}
+
+/* RIBBON */
+.red-ribbon{background:#b71c1c;color:#fff;text-align:center;font-size:0.62rem;padding:7px 10px;font-weight:500;line-height:1.5;flex-shrink:0}
+.red-ribbon a{color:#ffeb3b;text-decoration:none;font-weight:700;border-bottom:1px dotted #ffeb3b}
+
+/* STATUS BAR */
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#000;border-bottom:1px solid #1a1613;flex-shrink:0}
+.brand{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;font-size:0.95rem;color:#fff}
+.brand span.orange{color:#FF6600;text-shadow: 0 0 8px rgba(255, 102, 0, 0.7)}
+.blink{animation:blink 1.2s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
+.clock{color:#7A6B5C;font-size:0.7rem}
+
+/* SCREENS */
+.screen{flex:1;overflow-y:auto;display:none;flex-direction:column;padding:22px 18px 16px;background:#000;min-height:0}
+.screen.active{display:flex}
+h3{font-family:'Rajdhani',sans-serif;font-size:1.2rem;color:#fff;margin-bottom:18px;letter-spacing:1px}
+
+/* FORM */
+.input-group{margin-bottom:18px}
+label{display:block;font-size:0.65rem;letter-spacing:1.5px;color:#B3A190;margin-bottom:7px;text-transform:uppercase}
+input,select{width:100%;padding:14px 14px;background:#0A0500;border:1px solid #2B2520;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:0.95rem;border-radius:14px;outline:none;transition:border-color 0.2s}
+input:focus,select:focus{border-color:#FF6600;box-shadow:0 0 0 2px rgba(255,102,0,0.2)}
+.btn{background:#0A0500;border:1px solid #FF6600;color:#FF6600;padding:15px;font-family:'IBM Plex Mono',monospace;font-weight:700;letter-spacing:1.5px;border-radius:40px;width:100%;font-size:0.85rem;cursor:pointer;transition:all 0.15s;margin-top:8px;box-shadow: 0 0 10px rgba(255, 102, 0, 0.1)}
+.btn:active{background:#FF6600;color:#000;transform:scale(0.97)}
+.btn-ghost{background:transparent;border-color:#2B2520;color:#7A6B5C;margin-top:6px}
+.err{color:#ff3131;font-size:0.68rem;margin-top:6px;display:none}
+
+/* OTP */
+.otp-wrap{position:relative;margin:18px 0}
+.otp-grid{display:flex;gap:8px;justify-content:center}
+.otp-box{width:46px;height:54px;background:#0A0500;border:1px solid #2B2520;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:#fff;transition:all 0.2s}
+.otp-box.filled{border-color:#FF6600;box-shadow:0 0 8px rgba(255,102,0,0.3);color:#FF6600}
+.otp-hidden{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;font-size:16px}
+.otp-timer{text-align:center;font-size:0.68rem;color:#7A6B5C;margin-top:8px}
+
+/* DEVICE CARD */
+.info-card{background:#0A0500;border:1px solid #1A1613;border-radius:18px;padding:14px;margin:14px 0}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #1A1613;font-size:0.8rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#7A6B5C}
+.info-value{font-weight:700;color:#FF6600;text-align:right;max-width:60%}
+
+/* SCAN ANIMATION */
+.scan-bar{height:2px;background:linear-gradient(90deg,transparent,#FF6600,transparent);width:100%;animation:scan 1.2s ease-in-out infinite;display:none}
+@keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.scan-wrap{overflow:hidden;border-radius:4px;margin:12px 0;height:2px;background:#111;display:none}
+
+/* EMULATE TOGGLE */
+.emu-toggle{display:flex;gap:10px;margin:14px 0}
+.emu-btn{flex:1;text-align:center;background:#0A0500;border:1px solid #2B2520;border-radius:14px;padding:12px 8px;font-size:0.72rem;cursor:pointer;transition:all 0.2s;font-family:'IBM Plex Mono',monospace;color:#7A6B5C}
+.emu-btn.active{background:#140B00;border-color:#FF6600;color:#FF6600;font-weight:700}
+
+/* COLOR SWATCHES */
+.swatch-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:14px 0}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer}
+.swatch-circle{width:36px;height:36px;border-radius:50%;border:2px solid transparent;transition:all 0.2s;box-shadow:0 0 0 0 transparent}
+.swatch.selected .swatch-circle{border-color:#fff;box-shadow:0 0 10px var(--sc)}
+.swatch-label{font-size:0.5rem;color:#7A6B5C;text-align:center}
+
+/* CHAT */
+.tab-bar{display:flex;border-bottom:1px solid #1A1613;background:#000;flex-shrink:0}
+.tab{flex:1;text-align:center;padding:12px 4px;font-size:0.65rem;font-weight:700;color:#4D4238;cursor:pointer;letter-spacing:0.5px;transition:color 0.2s}
+.tab.active{color:#FF6600;border-bottom:2px solid #FF6600}
+.tab-pane{flex:1;overflow-y:auto;display:none;flex-direction:column;min-height:0}
+.tab-pane.active{display:flex}
+.chat-area{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%}
+.msg.out{align-self:flex-end}
+.msg.in{align-self:flex-start}
+.msg-head{font-size:0.58rem;color:#4D4238;margin-bottom:3px;display:flex;gap:6px;align-items:center}
+.msg-bubble{background:#0A0500;border:1px solid #1A1613;border-radius:16px;padding:9px 13px;font-size:0.82rem;line-height:1.45;color:#ddd;word-break:break-word}
+.msg.out .msg-bubble{background:#050505}
+.bb-left{border-left:3px solid}
+
+/* COMPOSER */
+.composer-wrap{border-top:1px solid #1A1613;background:#050505;padding:10px 12px;flex-shrink:0}
+.composer{display:flex;gap:8px;align-items:center}
+.composer input{flex:1;background:#0A0500;border:1px solid #2B2520;border-radius:26px;padding:11px 14px;font-size:0.82rem;color:#fff;font-family:'IBM Plex Mono',monospace}
+.send-btn{width:44px;height:44px;border-radius:50%;background:#FF6600;border:none;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;box-shadow: 0 0 10px rgba(255, 102, 0, 0.4)}
+
+/* ===== COLLAPSIBLE BOB BUTTON ===== */
+.bob-btn-wrap{flex-shrink:0;padding:10px 14px 14px;background:#000;border-top:1px solid #1A1613}
+.bob-btn{width:100%;background:#050505;border:1px solid #1A1613;border-radius:18px;padding:12px 16px;cursor:pointer;text-align:left;transition:all 0.3s ease;position:relative;overflow:hidden}
+.bob-content{max-height:0;opacity:0;overflow:hidden;transition:all 0.3s ease}
+.bob-btn.expanded .bob-content{max-height:200px;opacity:1;margin-top:10px}
+.bob-top{display:flex;justify-content:space-between;align-items:center}
+.bob-title{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:700;color:#FF6600;letter-spacing:1px}
+.bob-soon{font-size:0.58rem;background:#140B00;border:1px solid #FF6600;color:#FF6600;padding:2px 8px;border-radius:20px;letter-spacing:1px}
+.bob-name{font-size:0.7rem;color:#7A6B5C;margin-top:2px}
+.bob-fee{display:flex;align-items:baseline;gap:6px}
+.bob-808{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;color:#FF6600;letter-spacing:2px}
+.bob-808 .zero{color:#fff;font-size:1.2rem;vertical-align:middle;margin:0 1px}
+.bob-sub{font-size:0.6rem;color:#B3A190;line-height:1.4}
+.bob-link{font-size:0.62rem;color:#7A6B5C;margin-top:8px}
+.bob-link span{color:#FF6600;text-decoration:underline}
+.bob-pulse{position:absolute;top:15px;right:90px;width:6px;height:6px;border-radius:50%;background:#FF6600;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.4)}}
+
+.hidden{display:none!important}
+.system-msg{text-align:center;font-size:0.62rem;color:#4D4238;padding:4px 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="red-ribbon">
+    ⚡ EMULATION ONLY · Fans Welcome to Experience &nbsp;|&nbsp;
+    <a id="waLink" href="#">📱 Bharath BholeY → Connect on WhatsApp</a>
+  </div>
+
+  <div class="status-bar">
+    <div class="brand">BLACKBERRYBH<span class="orange blink">.AI</span></div>
+    <div class="clock" id="clk">--:--</div>
+  </div>
+
+  <div id="sPhone" class="screen active">
+    <h3>🔐 BHAI NETWORK ACCESS</h3>
+    <div class="input-group">
+      <label>Mobile Number</label>
+      <input type="tel" id="phoneInp" placeholder="98765 43210" maxlength="10" inputmode="numeric">
+    </div>
+    <button class="btn" id="sendOtpBtn">SEND OTP →</button>
+    <div class="err" id="phoneErr">Enter valid 10-digit number</div>
+    <div style="flex:1"></div>
+    <p style="font-size:0.62rem;color:#4D4238;text-align:center;padding:10px 0">Open to ALL — BlackBerry &amp; non-BB users welcome</p>
+  </div>
+
+  <div id="sOtp" class="screen">
+    <h3>📨 VERIFY OTP</h3>
+    <p style="font-size:0.72rem;color:#B3A190;margin-bottom:4px">Sent to <span id="otpPhone" style="color:#FF6600"></span></p>
+    <div class="otp-wrap">
+      <div class="otp-grid" id="otpGrid">
+        <div class="otp-box">·</div><div class="otp-box">·</div><div class="otp-box">·</div>
+        <div class="otp-box">·</div><div class="otp-box">·</div><div class="otp-box">·</div>
+      </div>
+      <input class="otp-hidden" type="tel" id="otpInp" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+    </div>
+    <div class="otp-timer" id="otpTimer">60s remaining</div>
+    <button class="btn" id="verifyBtn">VERIFY</button>
+    <button class="btn btn-ghost" id="resendBtn">RESEND OTP</button>
+    <div class="err" id="otpErr">Invalid OTP — try again</div>
+  </div>
+
+  <div id="sDevice" class="screen">
+    <h3>📡 DEVICE SCAN</h3>
+    <p style="font-size:0.72rem;color:#B3A190;margin-bottom:4px">Emulate device type for demo</p>
+    <div class="emu-toggle">
+      <div class="emu-btn active" id="emuBB">📱 BlackBerry Device</div>
+      <div class="emu-btn" id="emuNon">📱 Non-BlackBerry</div>
+    </div>
+    <button class="btn" id="fetchBtn">🔍 FETCH DEVICE DETAILS</button>
+    <div class="scan-wrap" id="scanWrap"><div class="scan-bar" id="scanBar"></div></div>
+    <div id="devCard" class="info-card hidden">
+      <div class="info-row"><span class="info-label">IMEI</span><span id="vImei" class="info-value"></span></div>
+      <div class="info-row"><span class="info-label">Model</span><span id="vModel" class="info-value"></span></div>
+      <div class="info-row"><span class="info-label">Manufactured</span><span id="vYear" class="info-value"></span></div>
+      <div class="info-row"><span class="info-label">Battery</span><span id="vBatt" class="info-value"></span></div>
+      <div class="info-row"><span class="info-label">Device</span><span id="vType" class="info-value"></span></div>
+    </div>
+    <button class="btn hidden" id="confirmBtn">✓ INFORMATION IS CORRECT</button>
+  </div>
+
+  <div id="sBBModel" class="screen">
+    <h3>🍇 YOUR BLACKBERRY</h3>
+    <div class="input-group">
+      <label>Detected Model — Change if Wrong</label>
+      <select id="modelSel"></select>
+    </div>
+    <label style="margin-bottom:8px">ASSIGNED COLOR</label>
+    <div class="swatch-grid" id="swatchGrid"></div>
+    <div class="info-card" style="margin-top:8px">
+      <div class="info-row"><span class="info-label">Your Bhai ID</span><span id="bbPreview" class="info-value" style="font-size:0.7rem"></span></div>
+    </div>
+    <button class="btn" id="confirmModelBtn">ENTER BHAI NETWORK →</button>
+  </div>
+
+  <div id="sUsername" class="screen">
+    <h3>✨ CHOOSE HANDLE</h3>
+    <div class="input-group">
+      <label>Username (2–8 letters)</label>
+      <input id="handleInp" maxlength="8" placeholder="e.g. RAVI" style="text-transform:uppercase">
+    </div>
+    <div class="info-card">
+      <div class="info-row"><span class="info-label">Your ID</span><span id="nonbbPreview" class="info-value"></span></div>
+    </div>
+    <button class="btn" id="joinNonBBBtn">JOIN BHAI NETWORK →</button>
+    <div class="err" id="handleErr">2–8 letters only (A–Z)</div>
+  </div>
+
+  <div id="sChat" class="screen" style="padding:0">
+    <div class="tab-bar">
+      <div class="tab active" data-tab="chat">💬 BHAI NETWORK</div>
+      <div class="tab" data-tab="dir">📇 DIRECTORY</div>
+      <div class="tab" data-tab="mkt">🛒 MARKET</div>
+    </div>
+    <div id="tabChat" class="tab-pane active">
+      <div class="chat-area" id="chatArea"></div>
+      <div class="composer-wrap">
+        <div class="composer">
+          <input type="text" id="msgInp" placeholder="Say something...">
+          <button class="send-btn" id="sendBtn">➤</button>
+        </div>
+      </div>
+    </div>
+    <div id="tabDir" class="tab-pane" style="padding:12px;overflow-y:auto">
+      <div id="dirList"></div>
+    </div>
+    <div id="tabMkt" class="tab-pane market-content">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:20px">
+        <div style="font-size:2.5rem">🛍️</div>
+        <div style="font-family:'Rajdhani',sans-serif;font-size:1.3rem;color:#FF6600;letter-spacing:2px">BLACKBERRY BAZAAR</div>
+        <div style="font-size:0.72rem;color:#B3A190;line-height:1.6">Exclusive gear, collectibles &amp;<br>parts for BlackBerry fans.<br>Coming soon.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bob-btn-wrap" id="bobWrap">
+    <div class="bob-btn" id="bobBtn">
+      <div class="bob-pulse"></div>
+      <div class="bob-top">
+        <div>
+          <div class="bob-title">BHACKBERRY.AI</div>
+          <div class="bob-name">Full App · Click to Expand Info</div>
+        </div>
+        <div class="bob-soon" id="bobToggleLabel">INFO +</div>
+      </div>
+      <div class="bob-content" id="bobContent">
+        <div class="bob-fee">
+          <div class="bob-808">B<span class="zero">0</span>B</div>
+          <div class="bob-sub">
+            <strong style="color:#FF6600">₹808/month</strong><br>
+            Build Own BlackBerry Membership
+          </div>
+        </div>
+        <div class="bob-link" onclick="window.open('https://www.ipnotec.com','_blank');event.stopPropagation();">
+          Visit <span>www.ipnotec.com</span> · Let's Build it Together
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ──
+let phone='', otp='', otpTimer=null, emuBB=true;
+let deviceInfo={}, modelCode='', color='#FF6600', username='', city='BLR', isBB=false;
+let msgs=[], members=[];
+
+const MODELS={
+  "KEY2 LE":{c:"#BC13FE",short:"KEY2LE"},
+  "KEY2":{c:"#00FFD5",short:"KEY2"},
+  "KEYone":{c:"#39FF14",short:"KEYONE"},
+  "Passport":{c:"#4D94FF",short:"PASS"},
+  "Priv":{c:"#00E5FF",short:"PRIV"},
+  "Classic":{c:"#CCFF00",short:"CLSC"},
+  "Evolve X":{c:"#FFFF00",short:"EVOX"},
+  "Motion":{c:"#FFAC33",short:"MOT"},
+  "DTEK60":{c:"#FF3131",short:"DT60"},
+  "Bold 9900":{c:"#E0E0E0",short:"B9900"}
+};
+
+const SEEDS=[
+  {u:"RAJ_KEY2_MUM",c:"#00FFD5",m:"KEY2",msg:"Bhai keyboard still unmatched 🔥"},
+  {u:"ANAND_PASS_DEL",c:"#4D94FF",m:"Passport",msg:"Passport camera is art."},
+  {u:"MEERA_DT60_BLR",c:"#FF3131",m:"DTEK60",msg:"P2P handshake confirmed."},
+  {u:"PRIYA_PRIV_HYD",c:"#00E5FF",m:"Priv",msg:"Encrypted channel active 🔐"},
+  {u:"SURESH_B9900_CHN",c:"#E0E0E0",m:"Bold 9900",msg:"Old school, still secured."}
+];
+
+// ── UTILS ──
+function $(id){return document.getElementById(id)}
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+function beep(f=800,d=0.1,v=0.22){
+  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type='sine';o.frequency.value=f;g.gain.value=v;
+  o.connect(g);g.connect(ctx.destination);
+  o.start();g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+d);o.stop(ctx.currentTime+d);}catch(e){}
+}
+function playOk(){beep(880,0.15,0.25);setTimeout(()=>beep(1200,0.12,0.2),120)}
+function playTick(){beep(400,0.05,0.1)}
+
+// Clock & BOB Toggle
+setInterval(()=>{$('clk').innerText=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})},1000);
+$('clk').innerText=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+$('bobBtn').onclick=()=>{
+  const btn = $('bobBtn');
+  btn.classList.toggle('expanded');
+  $('bobToggleLabel').innerText = btn.classList.contains('expanded') ? 'CLOSE -' : 'INFO +';
+  playTick();
+};
+
+// WhatsApp Link
+$('waLink').onclick=e=>{
+  e.preventDefault();
+  const t=`Hi Bharath!\n\nName: \nCity: \n\n3 ways I can help build the Bhai Community:\n1. \n2. \n3. `;
+  window.open('https://wa.me/916292306090?text='+encodeURIComponent(t),'_blank');
+};
+
+// ── PHONE SCREEN ──
+$('sendOtpBtn').onclick=()=>{
+  const v=$('phoneInp').value.trim();
+  if(!/^\d{10}$/.test(v)){$('phoneErr').style.display='block';return;}
+  $('phoneErr').style.display='none';
+  phone=v;
+  otp=Math.floor(100000+Math.random()*900000).toString();
+  alert('[ DEMO ] OTP: '+otp);
+  $('otpPhone').innerText=v;
+  startOtpTimer();
+  show('sOtp');
+  setTimeout(()=>$('otpInp').focus(),300);
+  playTick();
+};
+
+function startOtpTimer(){
+  if(otpTimer)clearInterval(otpTimer);
+  let s=60;
+  $('otpTimer').innerText=s+'s remaining';
+  otpTimer=setInterval(()=>{s--;$('otpTimer').innerText=s+'s remaining';if(s<=0)clearInterval(otpTimer);},1000);
+}
+
+const boxes=document.querySelectorAll('#otpGrid .otp-box');
+$('otpInp').oninput=e=>{
+  const v=e.target.value.replace(/\D/g,'').slice(0,6);
+  boxes.forEach((b,i)=>{b.innerText=v[i]||'·';b.className='otp-box'+(v[i]?' filled':'');});
+  if(v.length===6){if(v===otp){clearInterval(otpTimer);playOk();setTimeout(()=>show('sDevice'),300);}
+  else{$('otpErr').style.display='block';setTimeout(()=>$('otpErr').style.display='none',1500);}}
+};
+
+$('verifyBtn').onclick=()=>{
+  if($('otpInp').value===otp){clearInterval(otpTimer);playOk();show('sDevice');}
+  else{$('otpErr').style.display='block';setTimeout(()=>$('otpErr').style.display='none',1500);}
+};
+
+$('resendBtn').onclick=()=>{
+  otp=Math.floor(100000+Math.random()*900000).toString();
+  alert('New OTP: '+otp);
+  startOtpTimer();
+  $('otpInp').value='';
+  boxes.forEach(b=>{b.innerText='·';b.className='otp-box';});
+};
+
+// ── DEVICE SCREEN ──
+$('emuBB').onclick=()=>{emuBB=true;$('emuBB').classList.add('active');$('emuNon').classList.remove('active');playTick();};
+$('emuNon').onclick=()=>{emuBB=false;$('emuNon').classList.add('active');$('emuBB').classList.remove('active');playTick();};
+
+$('fetchBtn').onclick=async()=>{
+  playTick();
+  $('fetchBtn').disabled=true;
+  $('fetchBtn').innerText='Scanning...';
+  const sw=$('scanWrap'),sb=$('scanBar');
+  sw.style.display='block';sb.style.display='block';
+  await new Promise(r=>setTimeout(r,1800));
+  sw.style.display='none';sb.style.display='none';
+
+  const imei='35'+Math.floor(Math.random()*1e13).toString().padStart(13,'0');
+  const yr=2015+Math.floor(Math.random()*9);
+  let batt='85% · Normal';
+  try{const b=await navigator.getBattery();batt=Math.round(b.level*100)+'% · '+(b.charging?'Charging':'Normal');}catch(e){}
+
+  let mdl,isBBDev=emuBB;
+  const MKEYS=Object.keys(MODELS);
+  if(emuBB){mdl='BlackBerry '+MKEYS[Math.floor(Math.random()*MKEYS.length)];}
+  else{mdl='iPhone 15';}
+
+  deviceInfo={imei,model:mdl,year:yr,battery:batt,isBlackBerry:isBBDev};
+  $('vImei').innerText=imei; $('vModel').innerText=mdl; $('vYear').innerText=yr; $('vBatt').innerText=batt;
+  $('vType').innerHTML=isBBDev?'<span style="color:#FF6600">✓ BLACKBERRY DETECTED</span>':'Non-BlackBerry Device';
+  $('devCard').classList.remove('hidden'); $('confirmBtn').classList.remove('hidden'); $('fetchBtn').style.display='none';
+  playOk();
+};
+
+$('confirmBtn').onclick=()=>{
+  isBB=deviceInfo.isBlackBerry;
+  if(isBB){buildBBModelScreen();show('sBBModel');}
+  else{show('sUsername');}
+  playOk();
+};
+
+function buildBBModelScreen(){
+  const sel=$('modelSel'); sel.innerHTML='';
+  const MKEYS=Object.keys(MODELS);
+  MKEYS.forEach(k=>{const o=document.createElement('option');o.value=k;o.innerText=k;sel.appendChild(o);});
+  const det=deviceInfo.model.replace('BlackBerry ','');
+  if(MKEYS.includes(det))sel.value=det;
+  modelCode=sel.value; color=MODELS[modelCode].c;
+  buildSwatches(); updateBBPreview();
+  sel.onchange=()=>{modelCode=sel.value;color=MODELS[modelCode].c;buildSwatches();updateBBPreview();};
+}
+
+function buildSwatches(){
+  const g=$('swatchGrid');g.innerHTML='';
+  Object.keys(MODELS).forEach(k=>{
+    const c=MODELS[k].c; const d=document.createElement('div');
+    d.className='swatch'+(k===modelCode?' selected':''); d.style.setProperty('--sc',c);
+    d.innerHTML=`<div class="swatch-circle" style="background:${c}"></div><div class="swatch-label">${k}</div>`;
+    d.onclick=()=>{modelCode=k;color=c;$('modelSel').value=k;buildSwatches();updateBBPreview();playTick();};
+    g.appendChild(d);
+  });
+}
+
+function updateBBPreview(){
+  $('bbPreview').innerText=`BLACKBERRY BHAI · ${modelCode} · ${city}`;
+  $('bbPreview').style.color=color;
+}
+
+$('confirmModelBtn').onclick=()=>{
+  const h=prompt('Choose handle (2-8 letters):','');
+  if(!h||!/^[A-Za-z]{2,8}$/.test(h)){alert('Invalid handle.');return;}
+  username=`BB_${h.toUpperCase()}_${city}`; enterChat();
+};
+
+$('handleInp').oninput=()=>{
+  const v=$('handleInp').value.toUpperCase().replace(/[^A-Z]/g,'');
+  $('handleInp').value=v; $('nonbbPreview').innerText=v||'????';
+};
+
+$('joinNonBBBtn').onclick=()=>{
+  const h=$('handleInp').value.toUpperCase();
+  if(h.length<2||h.length>8){$('handleErr').style.display='block';return;}
+  username=h+'_'+city; isBB=false; color='#ffffff'; enterChat();
+};
+
+function enterChat(){
+  members=[...SEEDS]; if(isBB)members.push({u:username,c:color,m:modelCode});
+  msgs=[]; SEEDS.forEach(s=>pushMsg(s.u,s.msg,true,s.c,false));
+  pushSystem(`${username} joined the network`);
+  renderDir(); show('sChat'); playOk();
+  $('sendBtn').onclick=sendMsg;
+  $('msgInp').onkeypress=e=>{if(e.key==='Enter')sendMsg();};
+}
+
+function sendMsg(){
+  const t=$('msgInp').value.trim();if(!t)return;
+  pushMsg(username,t,isBB,isBB?color:null,true);
+  $('msgInp').value=''; beep(500,0.06,0.12);
+}
+
+function pushMsg(sender,text,isBBUser,col,out){
+  msgs.push({sender,text,isBBUser,col,out,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+  renderChat();
+}
+
+function pushSystem(t){msgs.push({system:true,text:t});renderChat();}
+
+function renderChat(){
+  const a=$('chatArea'); a.innerHTML='';
+  msgs.forEach(m=>{
+    if(m.system){const d=document.createElement('div');d.className='system-msg';d.innerText=m.text;a.appendChild(d);return;}
+    const d=document.createElement('div'); d.className='msg '+(m.out?'out':'in');
+    const hd=document.createElement('div'); hd.className='msg-head';
+    const ns=document.createElement('span'); ns.innerText=m.sender; ns.style.color=m.isBBUser&&m.col?m.col:'#B3A190';
+    hd.appendChild(ns); const b=document.createElement('div'); b.className='msg-bubble';
+    if(m.isBBUser&&m.col){b.classList.add('bb-left');b.style.borderLeftColor=m.col;}
+    b.innerText=m.text; d.appendChild(hd); d.appendChild(b); a.appendChild(d);
+  });
+  a.scrollTop=a.scrollHeight;
+}
+
+function renderDir(){
+  const c=$('dirList');c.innerHTML='';
+  members.forEach(m=>{
+    const d=document.createElement('div');d.className='member-card';
+    d.innerHTML=`<div><div class="member-name" style="color:${m.c||'#fff'}">${m.u}</div><div class="member-model">${m.m||''}</div></div>`;
+    c.appendChild(d);
+  });
+}
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    $({chat:'tabChat',dir:'tabDir',mkt:'tabMkt'}[t.dataset.tab]).classList.add('active');
+    if(t.dataset.tab==='dir')renderDir(); playTick();
+  };
+});
+</script>
+</body>
+</html>
